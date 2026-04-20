@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TradeEx Demo</title>
+<title>TradeEx Demo Exchange</title>
 
 <style>
 body{
@@ -30,6 +30,7 @@ input,button{
   padding:10px;
   margin:6px 0;
   border:none;
+  border-radius:6px;
 }
 
 button{
@@ -44,8 +45,9 @@ button{
 
 .chart{
   width:100%;
-  height:250px;
+  height:240px;
   border-radius:10px;
+  margin-top:10px;
 }
 </style>
 </head>
@@ -61,7 +63,7 @@ button{
   <input id="su_email" placeholder="Email">
   <input id="su_pass" type="password" placeholder="Password">
   <button onclick="signup()">Signup</button>
-  <button onclick="showLogin()">Login</button>
+  <button onclick="showLogin()">Go Login</button>
 </div>
 
 <!-- LOGIN -->
@@ -69,7 +71,7 @@ button{
   <input id="li_email" placeholder="Email">
   <input id="li_pass" type="password">
   <button onclick="login()">Login</button>
-  <button onclick="showSignup()">Signup</button>
+  <button onclick="showSignup()">Go Signup</button>
 </div>
 
 <p id="msg"></p>
@@ -77,7 +79,7 @@ button{
 <!-- DASHBOARD -->
 <div id="dashboard">
 
-<h3>Balance: $<span id="bal">1000</span></h3>
+<h3>Balance: $<span id="bal">0</span></h3>
 
 <button onclick="openDeposit()">Add Funds</button>
 <button onclick="openAdmin()">Admin Panel</button>
@@ -88,31 +90,34 @@ button{
 
 <iframe id="chart"
 class="chart"
-src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:BTCUSDT&interval=15"></iframe>
+src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:BTCUSDT&interval=15">
+</iframe>
 
 </div>
 
 <!-- DEPOSIT -->
 <div id="depositBox">
+
 <h3>Deposit USDT (TRC20)</h3>
 
-<p id="wallet">TXYZ123456789TRC20</p>
+<p id="wallet">TXYZ123456789TRC20WALLET</p>
 
-<img id="qr" width="200">
+<img id="qr" width="180">
 
 <button onclick="copyWallet()">Copy</button>
 <button onclick="closeDeposit()">Close</button>
+
 </div>
 
 <!-- ADMIN -->
 <div id="adminBox">
 
-<h3>Admin Panel (Demo)</h3>
+<h3>Admin Panel</h3>
 
 <input id="amt" type="number" placeholder="Amount">
 
-<button onclick="addBal()">Increase</button>
-<button onclick="minusBal()">Decrease</button>
+<button onclick="addBalance()">Increase Balance</button>
+<button onclick="minusBalance()">Decrease Balance</button>
 
 <button onclick="closeAdmin()">Close</button>
 
@@ -121,27 +126,64 @@ src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:BTCUSDT&interval=15">
 </div>
 
 <script>
-// ================= LOCAL STORAGE AUTH =================
+
+// ================= USERS SYSTEM =================
+let users = JSON.parse(localStorage.getItem("users")) || [];
+let currentUser = JSON.parse(localStorage.getItem("currentUser"));
+
+// ================= SIGNUP =================
 function signup(){
-  localStorage.setItem("user", JSON.stringify({
-    email:su_email.value,
-    pass:su_pass.value,
-    balance:1000
-  }));
-  alert("Signup Done");
+
+  let email = su_email.value;
+  let pass = su_pass.value;
+
+  if(!email || !pass){
+    alert("Fill all fields ❌");
+    return;
+  }
+
+  let exists = users.find(u => u.email === email);
+
+  if(exists){
+    alert("Email already exists ❌");
+    return;
+  }
+
+  users.push({
+    email: email,
+    pass: pass,
+    balance: 1000
+  });
+
+  localStorage.setItem("users", JSON.stringify(users));
+
+  alert("Signup Success ✅");
+  showLogin();
 }
 
+// ================= LOGIN =================
 function login(){
-  let u = JSON.parse(localStorage.getItem("user"));
 
-  if(u && u.email==li_email.value && u.pass==li_pass.value){
+  let email = li_email.value;
+  let pass = li_pass.value;
+
+  let user = users.find(u => u.email === email && u.pass === pass);
+
+  if(user){
+
+    currentUser = user;
+    localStorage.setItem("currentUser", JSON.stringify(user));
+
     signupBox.style.display="none";
     loginBox.style.display="none";
     dashboard.style.display="block";
 
-    bal.innerText = u.balance;
+    bal.innerText = user.balance;
+
+    msg.innerText = "Login Success ✅";
+
   }else{
-    alert("Wrong login ❌");
+    alert("Invalid login ❌");
   }
 }
 
@@ -162,11 +204,11 @@ function setCoin(c){
 }
 
 // ================= DEPOSIT =================
-let wallet="TXYZ123456789TRC20";
+let wallet="TXYZ123456789TRC20WALLET";
 
 function openDeposit(){
   depositBox.style.display="block";
-  qr.src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data="+wallet;
+  qr.src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data="+wallet;
 }
 
 function closeDeposit(){
@@ -175,12 +217,10 @@ function closeDeposit(){
 
 function copyWallet(){
   navigator.clipboard.writeText(wallet);
-  alert("Copied");
+  alert("Copied ✅");
 }
 
 // ================= ADMIN =================
-let balance = 1000;
-
 function openAdmin(){
   adminBox.style.display="block";
 }
@@ -189,15 +229,52 @@ function closeAdmin(){
   adminBox.style.display="none";
 }
 
-function addBal(){
-  balance += Number(amt.value);
-  bal.innerText = balance;
+// UPDATE USERS AFTER CHANGE
+function saveUsers(){
+  localStorage.setItem("users", JSON.stringify(users));
 }
 
-function minusBal(){
-  balance -= Number(amt.value);
-  bal.innerText = balance;
+// INCREASE
+function addBalance(){
+  let amt = Number(amt.value);
+
+  currentUser.balance += amt;
+
+  bal.innerText = currentUser.balance;
+
+  updateUser();
+  alert("Balance Added ✅");
 }
+
+// DECREASE
+function minusBalance(){
+  let amt = Number(amt.value);
+
+  if(amt > currentUser.balance){
+    alert("Not enough balance ❌");
+    return;
+  }
+
+  currentUser.balance -= amt;
+
+  bal.innerText = currentUser.balance;
+
+  updateUser();
+  alert("Balance Deducted ✅");
+}
+
+// UPDATE CURRENT USER IN ARRAY
+function updateUser(){
+
+  let index = users.findIndex(u => u.email === currentUser.email);
+
+  if(index !== -1){
+    users[index] = currentUser;
+    saveUsers();
+    localStorage.setItem("currentUser", JSON.stringify(currentUser));
+  }
+}
+
 </script>
 
 </body>
