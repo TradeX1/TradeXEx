@@ -1,41 +1,128 @@
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TradeEx</title>
+
+<style>
+body {
+  margin: 0;
+  background-color: black;
+  color: white;
+  font-family: Arial;
+}
+
+.container {
+  padding: 15px;
+}
+
+.box {
+  background-color: #111;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+h2 {
+  text-align: center;
+  color: orange;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  margin-top: 8px;
+  background: #222;
+  border: none;
+  color: white;
+}
+
+button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  background: orange;
+  border: none;
+  color: black;
+  font-weight: bold;
+}
+
+.link {
+  text-align: center;
+  margin-top: 10px;
+  color: orange;
+}
+
+#login { display:none; }
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+<div class="box">
+
+<h2>Welcome to TradeEx</h2>
+
+<!-- SIGNUP -->
+<div id="signup">
+  <h3>Sign Up</h3>
+  <input id="su_name" placeholder="Username">
+  <input id="su_email" placeholder="Email">
+  <input id="su_pass" type="password" placeholder="Password">
+  <button onclick="signup()">Sign Up</button>
+  <div class="link" onclick="showLogin()">Already account? Login</div>
+</div>
+
+<!-- LOGIN -->
+<div id="login">
+  <h3>Login</h3>
+  <input id="li_email" placeholder="Email">
+  <input id="li_pass" type="password" placeholder="Password">
+  <button onclick="login()">Login</button>
+  <div class="link" onclick="showSignup()">Create account</div>
+</div>
+
+<p id="msg"></p>
+
+</div>
+</div>
 
 <script>
-  const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_AUTH_DOMAIN",
-    projectId: "YOUR_PROJECT_ID",
-  };
+let users = [];
 
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
+function showLogin(){
+  document.getElementById("signup").style.display="none";
+  document.getElementById("login").style.display="block";
+}
 
-  function signUp() {
-    let email = document.getElementById("signup-email").value;
-    let password = document.getElementById("signup-password").value;
+function showSignup(){
+  document.getElementById("signup").style.display="block";
+  document.getElementById("login").style.display="none";
+}
 
-    auth.createUserWithEmailAndPassword(email, password)
-      .then(() => {
-        document.getElementById("message").innerText = "Signup Successful!";
-      })
-      .catch((error) => {
-        document.getElementById("message").innerText = error.message;
-      });
+function signup(){
+  let n = su_name.value;
+  let e = su_email.value;
+  let p = su_pass.value;
+
+  users.push({n,e,p});
+  msg.innerText="Signup done";
+  showLogin();
+}
+
+function login(){
+  let e = li_email.value;
+  let p = li_pass.value;
+
+  let u = users.find(x=>x.e==e && x.p==p);
+
+  if(u){
+    msg.innerText="Welcome "+u.n;
+  } else {
+    msg.innerText="Wrong login";
   }
-
-  function login() {
-    let email = document.getElementById("login-email").value;
-    let password = document.getElementById("login-password").value;
-
-    auth.signInWithEmailAndPassword(email, password)
-      .then(() => {
-        document.getElementById("message").innerText = "Login Successful!";
-      })
-      .catch((error) => {
-        document.getElementById("message").innerText = error.message;
-      });
-  }
+}
 </script>
 
 </body>
