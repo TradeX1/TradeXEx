@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Simple Exchange</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #0f172a;
+      color: white;
+      text-align: center;
+    }
+
+    .card {
+      background: #1e293b;
+      padding: 15px;
+      margin: 10px;
+      border-radius: 10px;
+      display: inline-block;
+      width: 200px;
+    }
+
+    button {
+      margin: 5px;
+      padding: 8px;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    .buy { background: green; color: white; }
+    .sell { background: red; color: white; }
+  </style>
+</head>
+<body>
+
+<h2>Simple Crypto Exchange</h2>
+
+<h3>Balance: $<span id="balance">1000</span></h3>
+
+<div id="coins"></div>
+
+<script>
+let balance = 1000;
+
+let coins = [
+  { name: "BTCUSDT", price: 65000 },
+  { name: "ETHUSDT", price: 3200 },
+  { name: "BNBUSDT", price: 580 }
+];
+
+function render() {
+  let html = "";
+
+  coins.forEach((coin, i) => {
+    html += `
+      <div class="card">
+        <h3>${coin.name}</h3>
+        <p>Price: $${coin.price}</p>
+        <button class="buy" onclick="buy(${i})">Buy</button>
+        <button class="sell" onclick="sell(${i})">Sell</button>
+      </div>
+    `;
+  });
+
+  document.getElementById("coins").innerHTML = html;
+  document.getElementById("balance").innerText = balance;
+}
+
+function buy(i) {
+  if (balance >= coins[i].price) {
+    balance -= coins[i].price;
+    alert("Bought " + coins[i].name);
+  } else {
+    alert("Not enough balance");
+  }
+  render();
+}
+
+function sell(i) {
+  balance += coins[i].price;
+  alert("Sold " + coins[i].name);
+  render();
+}
+
+render();
+</script>
+
+</body>
+</html>
