@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TradeEx Exchange</title>
+<title>TradeEx Demo</title>
 
 <style>
 body{
@@ -38,20 +38,13 @@ button{
   cursor:pointer;
 }
 
-#loginBox{display:none;}
-#dashboard{display:none;}
+#loginBox,#dashboard,#adminBox,#depositBox{
+  display:none;
+}
 
 .chart{
   width:100%;
-  height:260px;
-  border-radius:10px;
-}
-
-#depositBox,#adminBox{
-  display:none;
-  background:#000;
-  padding:10px;
-  margin-top:10px;
+  height:250px;
   border-radius:10px;
 }
 </style>
@@ -61,19 +54,20 @@ button{
 
 <div class="box">
 
-<h2 style="color:orange;">TradeEx Exchange</h2>
+<h2 style="color:orange;">TradeEx DEMO</h2>
 
-<!-- AUTH -->
+<!-- SIGNUP -->
 <div id="signupBox">
-  <input id="email1" placeholder="Email">
-  <input id="pass1" type="password" placeholder="Password">
-  <button onclick="signup()">Sign Up</button>
+  <input id="su_email" placeholder="Email">
+  <input id="su_pass" type="password" placeholder="Password">
+  <button onclick="signup()">Signup</button>
   <button onclick="showLogin()">Login</button>
 </div>
 
+<!-- LOGIN -->
 <div id="loginBox">
-  <input id="email2" placeholder="Email">
-  <input id="pass2" type="password" placeholder="Password">
+  <input id="li_email" placeholder="Email">
+  <input id="li_pass" type="password">
   <button onclick="login()">Login</button>
   <button onclick="showSignup()">Signup</button>
 </div>
@@ -83,17 +77,14 @@ button{
 <!-- DASHBOARD -->
 <div id="dashboard">
 
-<h3>Balance: $<span id="balance">1000</span></h3>
+<h3>Balance: $<span id="bal">1000</span></h3>
 
 <button onclick="openDeposit()">Add Funds</button>
 <button onclick="openAdmin()">Admin Panel</button>
 
-<!-- COIN CHART -->
-<div class="nav">
 <button onclick="setCoin('BTCUSDT')">BTC</button>
 <button onclick="setCoin('ETHUSDT')">ETH</button>
 <button onclick="setCoin('BNBUSDT')">BNB</button>
-</div>
 
 <iframe id="chart"
 class="chart"
@@ -101,32 +92,27 @@ src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:BTCUSDT&interval=15">
 
 </div>
 
-<!-- ADD FUNDS -->
+<!-- DEPOSIT -->
 <div id="depositBox">
 <h3>Deposit USDT (TRC20)</h3>
 
-<p id="wallet">TXYZ123456789TRC20WALLET</p>
-
-<button onclick="copyWallet()">Copy Wallet</button>
-
-<br><br>
+<p id="wallet">TXYZ123456789TRC20</p>
 
 <img id="qr" width="200">
 
-<br><br>
-
+<button onclick="copyWallet()">Copy</button>
 <button onclick="closeDeposit()">Close</button>
 </div>
 
 <!-- ADMIN -->
 <div id="adminBox">
 
-<h3>Admin Panel</h3>
+<h3>Admin Panel (Demo)</h3>
 
-<input id="amount" type="number" placeholder="Amount">
+<input id="amt" type="number" placeholder="Amount">
 
-<button onclick="addBalance()">Increase Balance</button>
-<button onclick="minusBalance()">Decrease Balance</button>
+<button onclick="addBal()">Increase</button>
+<button onclick="minusBal()">Decrease</button>
 
 <button onclick="closeAdmin()">Close</button>
 
@@ -134,116 +120,84 @@ src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:BTCUSDT&interval=15">
 
 </div>
 
-<!-- FIREBASE -->
-<script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } 
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-
-let balance = 1000;
-const wallet = "TXYZ123456789TRC20WALLET";
-
-// ================= SIGNUP =================
-window.signup = async () => {
-  try{
-    await createUserWithEmailAndPassword(auth,email1.value,pass1.value);
-    msg.innerText="Signup Success ✅";
-    showLogin();
-  }catch(e){
-    msg.innerText=e.message;
-  }
+<script>
+// ================= LOCAL STORAGE AUTH =================
+function signup(){
+  localStorage.setItem("user", JSON.stringify({
+    email:su_email.value,
+    pass:su_pass.value,
+    balance:1000
+  }));
+  alert("Signup Done");
 }
 
-// ================= LOGIN =================
-window.login = async () => {
-  try{
-    await signInWithEmailAndPassword(auth,email2.value,pass2.value);
-    msg.innerText="Login Success ✅";
+function login(){
+  let u = JSON.parse(localStorage.getItem("user"));
 
+  if(u && u.email==li_email.value && u.pass==li_pass.value){
     signupBox.style.display="none";
     loginBox.style.display="none";
     dashboard.style.display="block";
 
-  }catch(e){
-    msg.innerText=e.message;
+    bal.innerText = u.balance;
+  }else{
+    alert("Wrong login ❌");
   }
 }
 
 // ================= UI =================
-window.showLogin=()=>{
+function showLogin(){
   signupBox.style.display="none";
   loginBox.style.display="block";
 }
 
-window.showSignup=()=>{
+function showSignup(){
   signupBox.style.display="block";
   loginBox.style.display="none";
 }
 
 // ================= CHART =================
-window.setCoin=(coin)=>{
-  document.getElementById("chart").src=
-  "https://s.tradingview.com/widgetembed/?symbol=BINANCE:"+coin+"&interval=15";
+function setCoin(c){
+  chart.src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:"+c+"&interval=15";
 }
 
 // ================= DEPOSIT =================
-window.openDeposit=()=>{
-  depositBox.style.display="block";
+let wallet="TXYZ123456789TRC20";
 
-  document.getElementById("qr").src=
-  "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data="+wallet;
+function openDeposit(){
+  depositBox.style.display="block";
+  qr.src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data="+wallet;
 }
 
-window.closeDeposit=()=>{
+function closeDeposit(){
   depositBox.style.display="none";
 }
 
-window.copyWallet=()=>{
+function copyWallet(){
   navigator.clipboard.writeText(wallet);
-  alert("Copied ✅");
+  alert("Copied");
 }
 
 // ================= ADMIN =================
-window.openAdmin=()=>{
+let balance = 1000;
+
+function openAdmin(){
   adminBox.style.display="block";
 }
 
-window.closeAdmin=()=>{
+function closeAdmin(){
   adminBox.style.display="none";
 }
 
-// INCREASE
-window.addBalance=()=>{
-  let amt=Number(amount.value);
-  balance += amt;
-  document.getElementById("balance").innerText=balance;
-  alert("Balance Increased ✅");
+function addBal(){
+  balance += Number(amt.value);
+  bal.innerText = balance;
 }
 
-// DECREASE
-window.minusBalance=()=>{
-  let amt=Number(amount.value);
-
-  if(amt>balance){
-    alert("Not enough balance ❌");
-    return;
-  }
-
-  balance -= amt;
-  document.getElementById("balance").innerText=balance;
-  alert("Balance Decreased ✅");
+function minusBal(){
+  balance -= Number(amt.value);
+  bal.innerText = balance;
 }
-
 </script>
 
 </body>
