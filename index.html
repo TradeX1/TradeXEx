@@ -1,88 +1,148 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Simple Exchange</title>
+  <title>Pro Crypto Exchange</title>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
+
   <style>
-    body {
-      font-family: Arial;
-      background: #0f172a;
-      color: white;
-      text-align: center;
-    }
-
-    .card {
-      background: #1e293b;
-      padding: 15px;
-      margin: 10px;
-      border-radius: 10px;
-      display: inline-block;
-      width: 200px;
-    }
-
-    button {
-      margin: 5px;
-      padding: 8px;
-      border: none;
-      cursor: pointer;
-      border-radius: 5px;
-    }
-
-    .buy { background: green; color: white; }
-    .sell { background: red; color: white; }
+    body { font-family: Arial; background:#0b1220; color:white; text-align:center; }
+    .box { background:#1e293b; padding:15px; margin:10px; border-radius:10px; display:inline-block; width:250px; }
+    input, button { padding:10px; margin:5px; width:90%; border-radius:6px; border:none; }
+    button { cursor:pointer; }
+    .buy { background:green; color:white; }
+    .sell { background:red; color:white; }
   </style>
 </head>
+
 <body>
 
-<h2>Simple Crypto Exchange</h2>
+<h2>🔥 PRO Crypto Exchange</h2>
 
-<h3>Balance: $<span id="balance">1000</span></h3>
+<!-- LOGIN -->
+<div id="authBox" class="box">
+  <h3>Login</h3>
+  <input id="email" placeholder="Email">
+  <input id="pass" type="password" placeholder="Password">
+  <button onclick="signup()">Signup</button>
+  <button onclick="login()">Login</button>
+</div>
 
-<div id="coins"></div>
+<!-- DASHBOARD -->
+<div id="dash" style="display:none">
+
+  <h3>Balance: $<span id="bal">0</span></h3>
+  <button onclick="logout()">Logout</button>
+
+  <div id="coins"></div>
+</div>
 
 <script>
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+let userId = null;
 let balance = 1000;
 
-let coins = [
-  { name: "BTCUSDT", price: 65000 },
-  { name: "ETHUSDT", price: 3200 },
-  { name: "BNBUSDT", price: 580 }
-];
+// LOGIN
+function signup(){
+  auth.createUserWithEmailAndPassword(email.value, pass.value)
+  .then(u => alert("Account Created"));
+}
 
-function render() {
-  let html = "";
+function login(){
+  auth.signInWithEmailAndPassword(email.value, pass.value)
+  .then(u => {
+    userId = u.user.uid;
+    loadUser();
+  });
+}
 
-  coins.forEach((coin, i) => {
-    html += `
-      <div class="card">
-        <h3>${coin.name}</h3>
-        <p>Price: $${coin.price}</p>
-        <button class="buy" onclick="buy(${i})">Buy</button>
-        <button class="sell" onclick="sell(${i})">Sell</button>
-      </div>
-    `;
+function logout(){
+  auth.signOut();
+  location.reload();
+}
+
+// USER LOAD
+function loadUser(){
+  document.getElementById("authBox").style.display = "none";
+  document.getElementById("dash").style.display = "block";
+
+  db.collection("users").doc(userId).get().then(doc => {
+    if(doc.exists){
+      balance = doc.data().balance;
+    } else {
+      db.collection("users").doc(userId).set({balance:1000});
+    }
+    document.getElementById("bal").innerText = balance;
   });
 
-  document.getElementById("coins").innerHTML = html;
-  document.getElementById("balance").innerText = balance;
+  loadCoins();
 }
 
-function buy(i) {
-  if (balance >= coins[i].price) {
-    balance -= coins[i].price;
-    alert("Bought " + coins[i].name);
-  } else {
-    alert("Not enough balance");
+// LIVE PRICE
+async function price(sym){
+  let r = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${sym}`);
+  let d = await r.json();
+  return parseFloat(d.price);
+}
+
+async function loadCoins(){
+  let list = ["BTCUSDT","ETHUSDT","BNBUSDT"];
+  let html = "";
+
+  for(let c of list){
+    let p = await price(c);
+
+    html += `
+      <div class="box">
+        <h3>${c}</h3>
+        <p>$${p.toFixed(2)}</p>
+        <button class="buy" onclick="buy('${c}',${p})">Buy</button>
+        <button class="sell" onclick="sell('${c}',${p})">Sell</button>
+      </div>
+    `;
   }
-  render();
+
+  document.getElementById("coins").innerHTML = html;
 }
 
-function sell(i) {
-  balance += coins[i].price;
-  alert("Sold " + coins[i].name);
-  render();
+// TRADE
+function buy(c,p){
+  balance -= p;
+  update();
 }
 
-render();
+function sell(c,p){
+  balance += p;
+  update();
+}
+
+// SAVE
+function update(){
+  document.getElementById("bal").innerText = balance;
+
+  db.collection("users").doc(userId).set({
+    balance: balance
+  });
+}
+
+auth.onAuthStateChanged(u=>{
+  if(u){
+    userId = u.uid;
+    loadUser();
+  }
+});
 </script>
 
 </body>
