@@ -1,148 +1,73 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Pro Crypto Exchange</title>
-
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
-
-  <style>
-    body { font-family: Arial; background:#0b1220; color:white; text-align:center; }
-    .box { background:#1e293b; padding:15px; margin:10px; border-radius:10px; display:inline-block; width:250px; }
-    input, button { padding:10px; margin:5px; width:90%; border-radius:6px; border:none; }
-    button { cursor:pointer; }
-    .buy { background:green; color:white; }
-    .sell { background:red; color:white; }
-  </style>
+  <title>TradeEx</title>
 </head>
-
 <body>
 
-<h2>🔥 PRO Crypto Exchange</h2>
+<h2>Welcome to TradeEx</h2>
+
+<!-- SIGN UP -->
+<h3>Sign Up</h3>
+<input type="text" id="signup-username" placeholder="Username"><br><br>
+<input type="email" id="signup-email" placeholder="Email"><br><br>
+<input type="password" id="signup-password" placeholder="Password"><br><br>
+<button onclick="signUp()">Sign Up</button>
+
+<hr>
 
 <!-- LOGIN -->
-<div id="authBox" class="box">
-  <h3>Login</h3>
-  <input id="email" placeholder="Email">
-  <input id="pass" type="password" placeholder="Password">
-  <button onclick="signup()">Signup</button>
-  <button onclick="login()">Login</button>
-</div>
+<h3>Login</h3>
+<input type="email" id="login-email" placeholder="Email"><br><br>
+<input type="password" id="login-password" placeholder="Password"><br><br>
+<button onclick="login()">Login</button>
 
-<!-- DASHBOARD -->
-<div id="dash" style="display:none">
+<p id="message"></p>
 
-  <h3>Balance: $<span id="bal">0</span></h3>
-  <button onclick="logout()">Logout</button>
-
-  <div id="coins"></div>
-</div>
+<!-- Firebase SDK (OLD COMPAT VERSION - EASY) -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 
 <script>
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT"
-};
+  // 🔴 APNI FIREBASE CONFIG YAHA PASTE KARO
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_AUTH_DOMAIN",
+    projectId: "YOUR_PROJECT_ID",
+  };
 
-firebase.initializeApp(firebaseConfig);
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
 
-const auth = firebase.auth();
-const db = firebase.firestore();
+  // SIGN UP
+  function signUp() {
+    let username = document.getElementById("signup-username").value;
+    let email = document.getElementById("signup-email").value;
+    let password = document.getElementById("signup-password").value;
 
-let userId = null;
-let balance = 1000;
-
-// LOGIN
-function signup(){
-  auth.createUserWithEmailAndPassword(email.value, pass.value)
-  .then(u => alert("Account Created"));
-}
-
-function login(){
-  auth.signInWithEmailAndPassword(email.value, pass.value)
-  .then(u => {
-    userId = u.user.uid;
-    loadUser();
-  });
-}
-
-function logout(){
-  auth.signOut();
-  location.reload();
-}
-
-// USER LOAD
-function loadUser(){
-  document.getElementById("authBox").style.display = "none";
-  document.getElementById("dash").style.display = "block";
-
-  db.collection("users").doc(userId).get().then(doc => {
-    if(doc.exists){
-      balance = doc.data().balance;
-    } else {
-      db.collection("users").doc(userId).set({balance:1000});
-    }
-    document.getElementById("bal").innerText = balance;
-  });
-
-  loadCoins();
-}
-
-// LIVE PRICE
-async function price(sym){
-  let r = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${sym}`);
-  let d = await r.json();
-  return parseFloat(d.price);
-}
-
-async function loadCoins(){
-  let list = ["BTCUSDT","ETHUSDT","BNBUSDT"];
-  let html = "";
-
-  for(let c of list){
-    let p = await price(c);
-
-    html += `
-      <div class="box">
-        <h3>${c}</h3>
-        <p>$${p.toFixed(2)}</p>
-        <button class="buy" onclick="buy('${c}',${p})">Buy</button>
-        <button class="sell" onclick="sell('${c}',${p})">Sell</button>
-      </div>
-    `;
+    auth.createUserWithEmailAndPassword(email, password)
+      .then(() => {
+        document.getElementById("message").innerText = "Signup Successful!";
+      })
+      .catch((error) => {
+        document.getElementById("message").innerText = error.message;
+      });
   }
 
-  document.getElementById("coins").innerHTML = html;
-}
+  // LOGIN
+  function login() {
+    let email = document.getElementById("login-email").value;
+    let password = document.getElementById("login-password").value;
 
-// TRADE
-function buy(c,p){
-  balance -= p;
-  update();
-}
-
-function sell(c,p){
-  balance += p;
-  update();
-}
-
-// SAVE
-function update(){
-  document.getElementById("bal").innerText = balance;
-
-  db.collection("users").doc(userId).set({
-    balance: balance
-  });
-}
-
-auth.onAuthStateChanged(u=>{
-  if(u){
-    userId = u.uid;
-    loadUser();
+    auth.signInWithEmailAndPassword(email, password)
+      .then(() => {
+        document.getElementById("message").innerText = "Login Successful!";
+      })
+      .catch((error) => {
+        document.getElementById("message").innerText = error.message;
+      });
   }
-});
 </script>
 
 </body>
