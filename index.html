@@ -126,26 +126,26 @@ src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:BTCUSDT&interval=15">
 </div>
 
 <script>
-
-// ================= USERS SYSTEM =================
+// USERS STORE
 let users = JSON.parse(localStorage.getItem("users")) || [];
-let currentUser = JSON.parse(localStorage.getItem("currentUser"));
+let currentUser = null;
 
-// ================= SIGNUP =================
+// ================= SIGNUP FIRST =================
 function signup(){
 
-  let email = su_email.value;
-  let pass = su_pass.value;
+  let email = su_email.value.trim();
+  let pass = su_pass.value.trim();
 
   if(!email || !pass){
     alert("Fill all fields ❌");
     return;
   }
 
+  // check duplicate
   let exists = users.find(u => u.email === email);
 
   if(exists){
-    alert("Email already exists ❌");
+    alert("Email already registered ❌ Login karo");
     return;
   }
 
@@ -157,32 +157,38 @@ function signup(){
 
   localStorage.setItem("users", JSON.stringify(users));
 
-  alert("Signup Success ✅");
+  alert("Signup Success ✅ Now login karo");
+
   showLogin();
 }
 
 // ================= LOGIN =================
 function login(){
 
-  let email = li_email.value;
-  let pass = li_pass.value;
+  let email = li_email.value.trim();
+  let pass = li_pass.value.trim();
 
   let user = users.find(u => u.email === email && u.pass === pass);
 
-  if(user){
+  if(!user){
+    alert("Wrong email or password ❌ Pehle signup karo");
+    return;
+  }
 
-    currentUser = user;
-    localStorage.setItem("currentUser", JSON.stringify(user));
+  currentUser = user;
 
-    signupBox.style.display="none";
-    loginBox.style.display="none";
-    dashboard.style.display="block";
+  localStorage.setItem("currentUser", JSON.stringify(user));
 
-    bal.innerText = user.balance;
+  signupBox.style.display="none";
+  loginBox.style.display="none";
+  dashboard.style.display="block";
 
-    msg.innerText = "Login Success ✅";
+  bal.innerText = user.balance;
 
-  }else{
+  alert("Login Success ✅ Welcome");
+}
+
+  else{
     alert("Invalid login ❌");
   }
 }
