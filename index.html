@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TradeEx Demo Exchange</title>
+<title>TradeEx App</title>
 
 <style>
 body{
@@ -14,211 +14,154 @@ body{
   text-align:center;
 }
 
-.box{
-  width:92%;
-  max-width:420px;
-  margin:auto;
+.page{display:none; padding:10px;}
+.active{display:block;}
+
+.bottom{
+  position:fixed;
+  bottom:0;
+  width:100%;
+  display:flex;
   background:#111;
-  padding:20px;
-  border-radius:12px;
-  box-shadow:0 0 15px orange;
-  margin-top:15px;
 }
 
-input,button{
-  width:100%;
-  padding:10px;
-  margin:6px 0;
+.bottom button{
+  flex:1;
+  padding:15px;
   border:none;
-  border-radius:6px;
+  background:#222;
+  color:white;
+}
+
+.bottom button:hover{
+  background:orange;
+}
+
+.card{
+  background:#111;
+  padding:10px;
+  margin:10px;
+  border-radius:10px;
 }
 
 button{
   background:orange;
-  font-weight:bold;
-  cursor:pointer;
-}
-
-#loginBox,#dashboard,#adminBox,#depositBox{
-  display:none;
-}
-
-.chart{
-  width:100%;
-  height:240px;
-  border-radius:10px;
-  margin-top:10px;
+  border:none;
+  padding:8px;
+  margin:5px;
+  width:45%;
 }
 </style>
 </head>
 
 <body>
 
-<div class="box">
+<!-- HOME -->
+<div id="home" class="page active">
 
-<h2 style="color:orange;">TradeEx DEMO</h2>
+<h2>Dashboard</h2>
 
-<!-- SIGNUP -->
-<div id="signupBox">
-  <input id="su_email" placeholder="Email">
-  <input id="su_pass" type="password" placeholder="Password">
-  <button onclick="signup()">Signup</button>
-  <button onclick="showLogin()">Go Login</button>
-</div>
+<h3>Balance: $<span id="bal">1000</span></h3>
 
-<!-- LOGIN -->
-<div id="loginBox">
-  <input id="li_email" placeholder="Email">
-  <input id="li_pass" type="password">
-  <button onclick="login()">Login</button>
-  <button onclick="showSignup()">Go Signup</button>
-</div>
+<div class="card">
 
-<p id="msg"></p>
+<h4>Add Funds</h4>
+<button onclick="openDeposit()">Deposit</button>
 
-<!-- DASHBOARD -->
-<div id="dashboard">
-
-<h3>Balance: $<span id="bal">0</span></h3>
-
-<button onclick="openDeposit()">Add Funds</button>
-<button onclick="openAdmin()">Admin Panel</button>
-
-<button onclick="setCoin('BTCUSDT')">BTC</button>
-<button onclick="setCoin('ETHUSDT')">ETH</button>
-<button onclick="setCoin('BNBUSDT')">BNB</button>
-
-<iframe id="chart"
-class="chart"
-src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:BTCUSDT&interval=15">
-</iframe>
-
-</div>
-
-<!-- DEPOSIT -->
-<div id="depositBox">
-
-<h3>Deposit USDT (TRC20)</h3>
-
-<p id="wallet">TXYZ123456789TRC20WALLET</p>
+<div id="depositBox" style="display:none">
+<p id="wallet">TXYZ123456789TRC20</p>
 
 <img id="qr" width="180">
 
+<br>
 <button onclick="copyWallet()">Copy</button>
-<button onclick="closeDeposit()">Close</button>
+</div>
 
 </div>
 
-<!-- ADMIN -->
-<div id="adminBox">
+</div>
 
-<h3>Admin Panel</h3>
+<!-- MARKET -->
+<div id="market" class="page">
 
-<input id="amt" type="number" placeholder="Amount">
+<h2>Market</h2>
 
-<button onclick="addBalance()">Increase Balance</button>
-<button onclick="minusBalance()">Decrease Balance</button>
+<div class="card">
+<h4>BTC</h4>
+<iframe src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:BTCUSDT&interval=15" height="200"></iframe>
+<br>
+<button onclick="trade('BTC')">Buy</button>
+<button onclick="trade('BTC')">Sell</button>
+</div>
 
-<button onclick="closeAdmin()">Close</button>
+<div class="card">
+<h4>ETH</h4>
+<iframe src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:ETHUSDT&interval=15" height="200"></iframe>
+<br>
+<button onclick="trade('ETH')">Buy</button>
+<button onclick="trade('ETH')">Sell</button>
+</div>
+
+<div class="card">
+<h4>BNB</h4>
+<iframe src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:BNBUSDT&interval=15" height="200"></iframe>
+<br>
+<button onclick="trade('BNB')">Buy</button>
+<button onclick="trade('BNB')">Sell</button>
+</div>
 
 </div>
+
+<!-- ASSETS -->
+<div id="asset" class="page">
+
+<h2>Assets</h2>
+
+<h3>Balance: $<span id="bal2">1000</span></h3>
+
+<button onclick="withdraw()">Withdraw</button>
+
+</div>
+
+<!-- SUPPORT -->
+<div id="support" class="page">
+
+<h2>Support</h2>
+
+<input id="msg" placeholder="Message">
+<button onclick="send()">Send</button>
+
+<p id="res"></p>
+
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom">
+
+<button onclick="show('home')">Home</button>
+<button onclick="show('market')">Market</button>
+<button onclick="show('asset')">Asset</button>
+<button onclick="show('support')">Support</button>
 
 </div>
 
 <script>
-// USERS STORE
-let users = JSON.parse(localStorage.getItem("users")) || [];
-let currentUser = null;
 
-// ================= SIGNUP FIRST =================
-function signup(){
+let balance = 1000;
 
-  let email = su_email.value.trim();
-  let pass = su_pass.value.trim();
-
-  if(!email || !pass){
-    alert("Fill all fields ❌");
-    return;
-  }
-
-  // check duplicate
-  let exists = users.find(u => u.email === email);
-
-  if(exists){
-    alert("Email already registered ❌ Login karo");
-    return;
-  }
-
-  users.push({
-    email: email,
-    pass: pass,
-    balance: 1000
-  });
-
-  localStorage.setItem("users", JSON.stringify(users));
-
-  alert("Signup Success ✅ Now login karo");
-
-  showLogin();
-}
-
-// ================= LOGIN =================
-function login(){
-
-  let email = li_email.value.trim();
-  let pass = li_pass.value.trim();
-
-  let user = users.find(u => u.email === email && u.pass === pass);
-
-  if(!user){
-    alert("Wrong email or password ❌ Pehle signup karo");
-    return;
-  }
-
-  currentUser = user;
-
-  localStorage.setItem("currentUser", JSON.stringify(user));
-
-  signupBox.style.display="none";
-  loginBox.style.display="none";
-  dashboard.style.display="block";
-
-  bal.innerText = user.balance;
-
-  alert("Login Success ✅ Welcome");
-}
-
-  else{
-    alert("Invalid login ❌");
-  }
-}
-
-// ================= UI =================
-function showLogin(){
-  signupBox.style.display="none";
-  loginBox.style.display="block";
-}
-
-function showSignup(){
-  signupBox.style.display="block";
-  loginBox.style.display="none";
-}
-
-// ================= CHART =================
-function setCoin(c){
-  chart.src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:"+c+"&interval=15";
+// ================= NAV =================
+function show(p){
+  document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+  document.getElementById(p).classList.add("active");
 }
 
 // ================= DEPOSIT =================
-let wallet="TXYZ123456789TRC20WALLET";
+const wallet="TXYZ123456789TRC20";
 
 function openDeposit(){
   depositBox.style.display="block";
-  qr.src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data="+wallet;
-}
 
-function closeDeposit(){
-  depositBox.style.display="none";
+  qr.src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data="+wallet;
 }
 
 function copyWallet(){
@@ -226,58 +169,42 @@ function copyWallet(){
   alert("Copied ✅");
 }
 
-// ================= ADMIN =================
-function openAdmin(){
-  adminBox.style.display="block";
+// ================= TRADE =================
+function trade(c){
+  alert(c+" Trade Opened (Demo)");
 }
 
-function closeAdmin(){
-  adminBox.style.display="none";
-}
+// ================= WITHDRAW =================
+function withdraw(){
 
-// UPDATE USERS AFTER CHANGE
-function saveUsers(){
-  localStorage.setItem("users", JSON.stringify(users));
-}
-
-// INCREASE
-function addBalance(){
-  let amt = Number(amt.value);
-
-  currentUser.balance += amt;
-
-  bal.innerText = currentUser.balance;
-
-  updateUser();
-  alert("Balance Added ✅");
-}
-
-// DECREASE
-function minusBalance(){
-  let amt = Number(amt.value);
-
-  if(amt > currentUser.balance){
-    alert("Not enough balance ❌");
+  if(balance <= 0){
+    alert("First add funds ❌ Contact support");
     return;
   }
 
-  currentUser.balance -= amt;
+  let amt = prompt("Enter withdraw amount");
 
-  bal.innerText = currentUser.balance;
+  if(amt > balance){
+    alert("Low balance ❌");
+    return;
+  }
 
-  updateUser();
-  alert("Balance Deducted ✅");
+  balance -= amt;
+
+  bal.innerText = balance;
+  bal2.innerText = balance;
+
+  alert("Withdraw request sent ✅");
 }
 
-// UPDATE CURRENT USER IN ARRAY
-function updateUser(){
+// ================= SUPPORT =================
+function send(){
+  let m = msg.value;
 
-  let index = users.findIndex(u => u.email === currentUser.email);
-
-  if(index !== -1){
-    users[index] = currentUser;
-    saveUsers();
-    localStorage.setItem("currentUser", JSON.stringify(currentUser));
+  if(balance <= 0){
+    res.innerText="Contact customer support ❌";
+  }else{
+    res.innerText="Message sent ✅";
   }
 }
 
