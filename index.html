@@ -3,80 +3,137 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TradeEx App</title>
+<title>VIP TradeEx</title>
 
 <style>
 body{
   margin:0;
-  background:black;
-  color:white;
   font-family:Arial;
-  text-align:center;
+  background:#0b0f14;
+  color:white;
 }
 
-.page{display:none; padding:10px;}
+/* AUTH */
+.auth{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  height:100vh;
+}
+
+.box{
+  width:90%;
+  max-width:350px;
+  background:#121823;
+  padding:20px;
+  border-radius:12px;
+  box-shadow:0 0 10px #000;
+}
+
+input{
+  width:100%;
+  padding:10px;
+  margin:5px 0;
+  border:none;
+  border-radius:6px;
+  background:#1c2533;
+  color:white;
+}
+
+button{
+  width:100%;
+  padding:10px;
+  margin-top:5px;
+  border:none;
+  border-radius:6px;
+  background:orange;
+  font-weight:bold;
+}
+
+/* APP */
+.page{display:none;padding:10px;}
 .active{display:block;}
 
+/* TOP BAR */
+.top{
+  padding:10px;
+  background:#111827;
+  text-align:left;
+}
+
+/* CARDS */
+.card{
+  background:#121823;
+  padding:10px;
+  margin:10px 0;
+  border-radius:10px;
+}
+
+/* BOTTOM NAV */
 .bottom{
   position:fixed;
   bottom:0;
   width:100%;
   display:flex;
-  background:#111;
+  background:#111827;
 }
 
 .bottom button{
   flex:1;
+  background:none;
+  color:white;
   padding:15px;
   border:none;
-  background:#222;
-  color:white;
 }
 
 .bottom button:hover{
-  background:orange;
-}
-
-.card{
-  background:#111;
-  padding:10px;
-  margin:10px;
-  border-radius:10px;
-}
-
-button{
-  background:orange;
-  border:none;
-  padding:8px;
-  margin:5px;
-  width:45%;
+  background:#1f2937;
 }
 </style>
 </head>
 
 <body>
 
+<!-- ================= AUTH ================= -->
+<div id="auth" class="auth">
+
+<div class="box" id="signupBox">
+<h3>Sign Up</h3>
+<input id="su_email" placeholder="Email">
+<input id="su_pass" type="password" placeholder="Password">
+<button onclick="signup()">Create Account</button>
+<p onclick="showLogin()" style="color:orange;cursor:pointer;">Already have account? Login</p>
+</div>
+
+<div class="box" id="loginBox" style="display:none">
+<h3>Login</h3>
+<input id="li_email" placeholder="Email">
+<input id="li_pass" type="password">
+<button onclick="login()">Login</button>
+<p onclick="showSignup()" style="color:orange;cursor:pointer;">Create account</p>
+</div>
+
+</div>
+
+<!-- ================= APP ================= -->
+<div id="app" style="display:none">
+
+<div class="top">
+<h3>VIP TradeEx</h3>
+<p>Balance: $<span id="balance">0</span></p>
+</div>
+
 <!-- HOME -->
 <div id="home" class="page active">
 
-<h2>Dashboard</h2>
-
-<h3>Balance: $<span id="bal">1000</span></h3>
-
 <div class="card">
-
-<h4>Add Funds</h4>
-<button onclick="openDeposit()">Deposit</button>
-
-<div id="depositBox" style="display:none">
+<h3>Add Funds</h3>
 <p id="wallet">TXYZ123456789TRC20</p>
 
-<img id="qr" width="180">
+<img id="qr" width="150">
 
-<br>
-<button onclick="copyWallet()">Copy</button>
-</div>
-
+<button onclick="copyWallet()">Copy Wallet</button>
 </div>
 
 </div>
@@ -84,30 +141,14 @@ button{
 <!-- MARKET -->
 <div id="market" class="page">
 
-<h2>Market</h2>
-
 <div class="card">
-<h4>BTC</h4>
+<h3>BTC/USDT</h3>
 <iframe src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:BTCUSDT&interval=15" height="200"></iframe>
-<br>
-<button onclick="trade('BTC')">Buy</button>
-<button onclick="trade('BTC')">Sell</button>
 </div>
 
 <div class="card">
-<h4>ETH</h4>
+<h3>ETH/USDT</h3>
 <iframe src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:ETHUSDT&interval=15" height="200"></iframe>
-<br>
-<button onclick="trade('ETH')">Buy</button>
-<button onclick="trade('ETH')">Sell</button>
-</div>
-
-<div class="card">
-<h4>BNB</h4>
-<iframe src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:BNBUSDT&interval=15" height="200"></iframe>
-<br>
-<button onclick="trade('BNB')">Buy</button>
-<button onclick="trade('BNB')">Sell</button>
 </div>
 
 </div>
@@ -115,23 +156,24 @@ button{
 <!-- ASSETS -->
 <div id="asset" class="page">
 
-<h2>Assets</h2>
-
-<h3>Balance: $<span id="bal2">1000</span></h3>
+<div class="card">
+<h3>Your Assets</h3>
+<p>Balance: $<span id="bal2">0</span></p>
 
 <button onclick="withdraw()">Withdraw</button>
+</div>
 
 </div>
 
 <!-- SUPPORT -->
 <div id="support" class="page">
 
-<h2>Support</h2>
-
+<div class="card">
+<h3>Support</h3>
 <input id="msg" placeholder="Message">
-<button onclick="send()">Send</button>
-
+<button onclick="sendMsg()">Send</button>
 <p id="res"></p>
+</div>
 
 </div>
 
@@ -140,14 +182,70 @@ button{
 
 <button onclick="show('home')">Home</button>
 <button onclick="show('market')">Market</button>
-<button onclick="show('asset')">Asset</button>
+<button onclick="show('asset')">Assets</button>
 <button onclick="show('support')">Support</button>
+
+</div>
 
 </div>
 
 <script>
 
-let balance = 1000;
+// USERS
+let users = JSON.parse(localStorage.getItem("users")) || [];
+let currentUser = null;
+
+// ================= SIGNUP =================
+function signup(){
+
+  let email = su_email.value;
+  let pass = su_pass.value;
+
+  if(users.find(u=>u.email===email)){
+    alert("Email already exists ❌");
+    return;
+  }
+
+  users.push({
+    email,
+    pass,
+    balance:0   // ⭐ DEFAULT 0 BALANCE
+  });
+
+  localStorage.setItem("users", JSON.stringify(users));
+
+  alert("Signup Success ✅ Login now");
+  showLogin();
+}
+
+// ================= LOGIN =================
+function login(){
+
+  let email = li_email.value;
+  let pass = li_pass.value;
+
+  let user = users.find(u=>u.email===email && u.pass===pass);
+
+  if(!user){
+    alert("Wrong login ❌");
+    return;
+  }
+
+  currentUser = user;
+
+  document.getElementById("auth").style.display="none";
+  document.getElementById("app").style.display="block";
+
+  updateUI();
+}
+
+// ================= UI =================
+function updateUI(){
+  balance.innerText = currentUser.balance;
+  bal2.innerText = currentUser.balance;
+
+  qr.src = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data="+wallet;
+}
 
 // ================= NAV =================
 function show(p){
@@ -155,57 +253,62 @@ function show(p){
   document.getElementById(p).classList.add("active");
 }
 
-// ================= DEPOSIT =================
-const wallet="TXYZ123456789TRC20";
-
-function openDeposit(){
-  depositBox.style.display="block";
-
-  qr.src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data="+wallet;
+// ================= SWITCH AUTH =================
+function showLogin(){
+  signupBox.style.display="none";
+  loginBox.style.display="block";
 }
+
+function showSignup(){
+  signupBox.style.display="block";
+  loginBox.style.display="none";
+}
+
+// ================= WALLET =================
+const wallet="TXYZ123456789TRC20";
 
 function copyWallet(){
   navigator.clipboard.writeText(wallet);
   alert("Copied ✅");
 }
 
-// ================= TRADE =================
-function trade(c){
-  alert(c+" Trade Opened (Demo)");
-}
-
 // ================= WITHDRAW =================
 function withdraw(){
 
-  if(balance <= 0){
-    alert("First add funds ❌ Contact support");
+  if(currentUser.balance<=0){
+    alert("Balance 0 ❌ Contact support");
     return;
   }
 
-  let amt = prompt("Enter withdraw amount");
+  let amt = prompt("Enter amount");
 
-  if(amt > balance){
+  if(amt > currentUser.balance){
     alert("Low balance ❌");
     return;
   }
 
-  balance -= amt;
+  currentUser.balance -= Number(amt);
 
-  bal.innerText = balance;
-  bal2.innerText = balance;
+  updateUser();
+  updateUI();
 
-  alert("Withdraw request sent ✅");
+  alert("Withdraw request sent");
 }
 
 // ================= SUPPORT =================
-function send(){
-  let m = msg.value;
-
-  if(balance <= 0){
-    res.innerText="Contact customer support ❌";
+function sendMsg(){
+  if(currentUser.balance<=0){
+    res.innerText="Contact support ❌";
   }else{
     res.innerText="Message sent ✅";
   }
+}
+
+// SAVE USER
+function updateUser(){
+  let i = users.findIndex(u=>u.email===currentUser.email);
+  users[i]=currentUser;
+  localStorage.setItem("users", JSON.stringify(users));
 }
 
 </script>
